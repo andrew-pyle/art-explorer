@@ -1,0 +1,319 @@
+/* Copyright (c) 2023 Andrew Pyle */
+
+/* ---- Reset -----------------
+   Based on Josh W. Comeau CSS Reset https://www.joshwcomeau.com/css/custom-css-reset/ 
+ */
+
+/* Use a more-intuitive box-sizing model. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+* {
+  margin: 0;
+}
+
+/* Allow percentage-based heights in the application */
+html,
+body {
+  height: 100%;
+}
+
+/* Typographic tweaks: Add accessible line-height & Improve text rendering */
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Remove built-in form typography styles */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* SPA Section */
+
+/* Create a root stacking context */
+#root {
+  isolation: isolate;
+}
+
+/* SPA takes up all space on the page */
+#root {
+  height: 100%;
+}
+
+/* ---- Base Styles ----------------- */
+
+:root {
+  --color-bkg-hue: 235;
+  --color-bkg: hsla(var(--color-bkg-hue), 11%, 13%, 1);
+  --color-accent: hsla(0, 0%, 0%, 0.3);
+  --color-text: hsla(0, 0%, 100%, 0.85);
+  --color-text-muted: hsla(0, 0%, 100%, 0.6);
+  --container-max-width: 1000px;
+  /* Spacing */
+  --btn-ratio: 0.3333333em 0.5em;
+}
+
+/* ---- Footer always at the bottom of the screen -----------------*/
+html,
+body {
+  height: 100vh;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 1200px;
+  flex-grow: 1;
+}
+
+/* ---- Typography ----------------- */
+
+header {
+  font-size: 1rem;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: hsla(0, 0%, 100%, 0.05);
+  border-bottom: 2px solid hsla(120, 100%, 97%, 0.3);
+}
+
+nav {
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: flex;
+  gap: 10px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Open Sans, Helvetica Neue, sans-serif;
+  background: var(--color-bkg);
+  color: var(--color-text);
+  font-size: 1.5rem;
+}
+
+main {
+  padding: 1em;
+}
+
+footer {
+  padding: 1.5em 1em;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  background: var(--color-accent);
+}
+
+footer h1 {
+  margin-top: 0;
+}
+
+article,
+section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2em;
+}
+h2 {
+  font-size: 1.5em;
+}
+h3 {
+  font-size: 1.17em;
+}
+h4 {
+  font-size: inherit;
+}
+h5 {
+  font-size: 0.83em;
+}
+h6 {
+  font-size: 0.67em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 800;
+}
+
+a {
+  color: inherit;
+  font-size: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 1.7em;
+  margin-bottom: 0.3em;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 0.75em;
+}
+
+button {
+  cursor: pointer;
+  padding: var(--btn-ratio);
+  background: var(--color-text);
+  border-radius: 5px;
+  color: var(--color-bkg);
+  font-family: inherit;
+  border: none;
+  margin: 0;
+}
+
+details > summary {
+  cursor: pointer;
+}
+
+img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+address {
+  font-style: normal;
+  display: flex;
+  flex-direction: column;
+}
+
+address a {
+  cursor: pointer;
+}
+
+address > * {
+  display: block;
+}
+
+picture {
+  display: flex;
+}
+
+fieldset {
+  border: 1px dashed;
+  border-radius: 10px;
+}
+
+legend {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0 0.5em;
+}
+
+input,
+output,
+button,
+label {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+input,
+output {
+  color: inherit;
+  background: inherit;
+  border: 1px solid var(--color-text);
+  border-radius: 5px;
+  padding: var(--btn-ratio);
+}
+
+input {
+  background: hsla(0, 0%, 100%, 0.1);
+}
+
+input.alternate,
+output.alternate {
+  border: none;
+  border-bottom: 2px solid hsla(0, 0%, 100%, 0.5);
+  border-radius: 0;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  transform: scale(1.5);
+  margin: 0.2em; /* Correct for scale */
+}
+
+input[type="search"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+output {
+  display: inline-block;
+  background: hsla(0, 0%, 100%, 0.2);
+  margin: 0.2em 0;
+}
+
+hr {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* ---- Components ----------------- */
+
+.disabled-visually {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.help-text {
+  font-size: 1rem;
+  margin: 0.5em 0;
+}

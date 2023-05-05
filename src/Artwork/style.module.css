@@ -1,0 +1,42 @@
+.artwork {
+  display: grid;
+  grid-template-areas: "overlay";
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  place-items: center;
+  place-content: center;
+  /* overflow: hidden; */
+}
+
+.artwork-img,
+.artwork-title {
+  grid-area: overlay;
+  max-height: var(--artwork-grid-cell-height);
+}
+
+.artwork-title {
+  place-self: start left;
+}
+
+.artwork-img {
+  /* place-self: start left; */
+  /* width: var(--artwork-grid-cell-width);
+  height: var(--artwork-grid-cell-height); */
+  height: var(--artwork-grid-cell-height);
+}
+
+/* ---- Typography --------------------- */
+
+.artwork-title {
+  font-size: 1rem;
+  background: hsla(0, 0%, 0%, 0.8);
+  padding: 1px 6px 2px 6px;
+  margin: 3px;
+
+  /* Only one line of title */
+  text-overflow: ellipsis;
+  /* Cell width less the padding */
+  max-width: calc(var(--artwork-grid-cell-width) - 6px);
+  white-space: nowrap;
+  overflow: hidden;
+}

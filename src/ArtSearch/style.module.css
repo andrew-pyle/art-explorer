@@ -1,0 +1,39 @@
+.input-and-button {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.input-and-button input,
+.year-control input[type="range"] {
+  flex-grow: 1;
+}
+
+.year-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 20px;
+}
+
+.search-form {
+  padding-top: 0.5em;
+}
+
+.form-row {
+  margin-bottom: 0.5em;
+}
+
+input[type="range"] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.year-output {
+  min-width: 6ch;
+}
+
+.suggestions {
+  display: flex;
+  gap: 10px;
+}
