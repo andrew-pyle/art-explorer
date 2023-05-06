@@ -14,7 +14,7 @@ export function Artwork({ imgSrc, width, height, alt, link, title }: Props) {
     <a href={link} class={style.artwork}>
       <img
         class={style["artwork-img"]}
-        src={imgSrc.toString()}
+        src={imgSrc?.toString()}
         width={width}
         height={height}
         alt={alt}

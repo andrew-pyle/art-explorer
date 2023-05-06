@@ -8,10 +8,12 @@ export function parseArtwork(
 	metCollectionObject: MetCollectionObjectResponse,
 ): ArtworkT {
 	return {
-		id: metCollectionObject.objectID.toString(10),
+		id: metCollectionObject.objectID,
 		title: metCollectionObject.title,
 		alt: `Artwork "${metCollectionObject.title}" by ${metCollectionObject.artistDisplayName}`,
-		imgSrc: new URL(metCollectionObject.primaryImageSmall),
+		imgSrc: metCollectionObject.primaryImageSmall
+			? new URL(metCollectionObject.primaryImageSmall)
+			: null,
 		additionalImgSrc: metCollectionObject.additionalImages.map(
 			(str) => new URL(str),
 		),

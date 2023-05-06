@@ -13,11 +13,11 @@ export interface ArtResult {
  * image size. It is necessary to set the size to avoid layout shift.
  */
 export interface ArtworkT {
-	id: string;
+	id: number;
 	title: string;
 	year: number;
 	alt: string;
-	imgSrc: URL;
+	imgSrc: null | URL;
 	additionalImgSrc?: URL[];
 	link: string;
 }
