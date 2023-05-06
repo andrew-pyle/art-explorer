@@ -29,8 +29,8 @@ export class ArtExplorer extends Component<Props, State> {
 
   searchMetMuseumApi: ArtworkSearchHandler = async (query, options) => {
     try {
-      // Reset state
-      this.setState({ userNotice: "Loading...", artworks: [] });
+      // Set Loading
+      this.setState({ userNotice: "Loading..." });
 
       // Do Search
       const resultListPromises = await metMuseumCollection.explore(
@@ -38,30 +38,77 @@ export class ArtExplorer extends Component<Props, State> {
         options
       );
 
-      for (const resultPromise of resultListPromises) {
-        resultPromise
-          .then((result) => {
-            const artwork: ArtworkT = parseArtwork(result);
+      // // Attach listener to asynchronously append each artwork as it's
+      // // promise settles. We must request each artwork data separately.
+      // for (const resultPromise of resultListPromises) {
+      // 	resultPromise
+      // 		.then((result) => {
+      // 			const artwork: ArtworkT = parseArtwork(result);
 
-            this.setState((prevState) => ({
-              artworks: [...prevState.artworks, artwork],
-            }));
-          })
-          .catch(() => {
-            // Let any one result fail silently.
-          });
-      }
+      // 			this.setState((prevState) => {
+      // 				const prevArtworks = new Set(prevState.artworks);
+      // 				const newArtworks = prevArtworks.add(artwork); // prevent duplication
+      // 				const sortedArtworks = Array.from(newArtworks).sort(
+      // 					(a, b) => (a.year = b.year),
+      // 				);
+      // 				return {
+      // 					artworks: sortedArtworks,
+      // 				};
+      // 			});
+      // 		})
+      // 		.catch(() => {
+      // 			// Let any one result fail silently.
+      // 		});
+      // }
 
-      // End Loading only after all results are loaded
-      await Promise.allSettled(resultListPromises);
-      if (resultListPromises.length === 0) {
+      // Remove artworks which aren't in the results
+      this.setState((prevState) => {
+        const newArtworks = new Set(resultListPromises.map((p) => p.id));
+        const stillMatchingArtworks = prevState.artworks.filter((old) =>
+          newArtworks.has(old.id)
+        );
+        return {
+          artworks: stillMatchingArtworks,
+        };
+      });
+
+      // Let any one result fail silently.
+      const artworks = (
+        await Promise.allSettled(resultListPromises.map((r) => r.artwork))
+      )
+        .filter(isFulfilled)
+        .map((p) => parseArtwork(p.value))
+        .filter((a) => a.imgSrc);
+
+      // // End Loading only after all results are loaded
+      // await Promise.allSettled(resultListPromises);
+      // if (resultListPromises.length === 0) {
+      if (artworks.length === 0) {
         this.setState({
           userNotice: "😭 No results in the Met Museum Open Access Collection.",
         });
-      } else {
-        this.setState({ userNotice: "" });
+        return;
       }
+
+      // Update state
+
+      // this.setState({ userNotice: "" });
+      this.setState((prevState) => {
+        const newArtworks = new Set(prevState.artworks);
+        // Add all new artworks, using Set to prevent duplication
+        for (const artwork of artworks) {
+          newArtworks.add(artwork);
+        }
+        const sortedArtworks = Array.from(newArtworks).sort(
+          (a, b) => (a.year = b.year)
+        );
+        return {
+          userNotice: "", // Clear loading notice
+          artworks: sortedArtworks,
+        };
+      });
     } catch (err) {
+      console.error(err);
       // User Notice
       this.setState({
         userNotice: "😰 We are having trouble at the moment. Sorry!",
@@ -82,10 +129,20 @@ export class ArtExplorer extends Component<Props, State> {
           <ArtSearch onSubmit={this.searchMetMuseumApi} />
           <hr />
         </div>
-        <h2>Results</h2>
-        {this.state.userNotice ? <p>{this.state.userNotice}</p> : null}
+        <div class={style["title-bar"]}>
+          <h2>Results</h2>
+          {this.state.userNotice ? (
+            <p class={style["user-notice"]}>{this.state.userNotice}</p>
+          ) : null}
+        </div>
         <ArtResultsGrid results={this.state.artworks} />
       </Fragment>
     );
   }
+}
+
+function isFulfilled<T>(
+  p: PromiseSettledResult<T>
+): p is PromiseFulfilledResult<T> {
+  return p.status === "fulfilled";
 }

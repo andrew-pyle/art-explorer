@@ -63,7 +63,7 @@ export class MetMuseumCollection {
 	explore = async (query: string, options: SearchOptions) => {
 		const objectIDs = await this.#search(query, options);
 		const objectsResponsePromises =
-			objectIDs?.map((id) => this.#getObject(id)) ?? [];
+			objectIDs?.map((id) => ({ id, artwork: this.#getObject(id) })) ?? [];
 		return objectsResponsePromises;
 	};
 
