@@ -1,7 +1,9 @@
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 import { ArtworkT } from "../lib/types";
 import { Artwork } from "../Artwork/Artwork";
 
 import style from "./style.module.css";
+import "./transition.css";
 
 // Types
 
@@ -17,12 +19,14 @@ export function ArtResultsGrid({ results }: Props) {
   const cellHeight = 200;
 
   return (
-    <ul class={style["result-grid"]}>
+    <TransitionGroup component="ul" class={style["result-grid"]}>
       {results.map((art) => (
-        <li key={art.id}>
-          <Artwork width={cellWidth} height={cellHeight} {...art} />
-        </li>
+        <CSSTransition key={art.id} class="fade" timeout={500}>
+          <li>
+            <Artwork width={cellWidth} height={cellHeight} {...art} />
+          </li>
+        </CSSTransition>
       ))}
-    </ul>
+    </TransitionGroup>
   );
 }
