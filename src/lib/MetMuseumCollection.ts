@@ -116,11 +116,13 @@ export class MetMuseumCollection {
 	#getObject = async (
 		id: MetCollectionObjectID,
 	): Promise<MetCollectionObjectResponse> => {
-		if (!this.metCollectionObjectCache.has(id)) {
-			const networkResponse = await this.#getObjectEndpoint(id);
-			this.metCollectionObjectCache.set(id, networkResponse);
+		const cached = this.metCollectionObjectCache.get(id);
+		if (cached) {
+			return cached;
 		}
-		return this.metCollectionObjectCache.get(id);
+		const networkResponse = await this.#getObjectEndpoint(id);
+		this.metCollectionObjectCache.set(id, networkResponse);
+		return networkResponse;
 	};
 
 	#getObjectEndpoint = async (id: MetCollectionObjectID) => {
