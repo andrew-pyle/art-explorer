@@ -4,6 +4,7 @@ import { ArtSearch } from "../ArtSearch/ArtSearch";
 import { ArtResultsGrid } from "../ArtResultsGrid/ArtResultsGrid";
 import { ArtworkSearchHandler, ArtworkT } from "../lib/types";
 import { parseArtwork } from "../lib/utils";
+import type { MetCollectionObjectResponse } from "../lib/MetMuseumCollectionTypes";
 import style from "./style.module.css";
 
 // Constants
@@ -40,30 +41,8 @@ export class ArtExplorer extends Component<Props, State> {
         options
       );
 
-      // // Attach listener to asynchronously append each artwork as it's
-      // // promise settles. We must request each artwork data separately.
-      // for (const resultPromise of resultListPromises) {
-      // 	resultPromise
-      // 		.then((result) => {
-      // 			const artwork: ArtworkT = parseArtwork(result);
-
-      // 			this.setState((prevState) => {
-      // 				const prevArtworks = new Set(prevState.artworks);
-      // 				const newArtworks = prevArtworks.add(artwork); // prevent duplication
-      // 				const sortedArtworks = Array.from(newArtworks).sort(
-      // 					(a, b) => (a.year = b.year),
-      // 				);
-      // 				return {
-      // 					artworks: sortedArtworks,
-      // 				};
-      // 			});
-      // 		})
-      // 		.catch(() => {
-      // 			// Let any one result fail silently.
-      // 		});
-      // }
-
-      // Remove artworks which aren't in the results
+      // TODO. Use Set()
+      // Remove artworks which aren't in the new results set
       this.setState((prevState) => {
         const newArtworks = new Set(resultListPromises.map((p) => p.id));
         const stillMatchingArtworks = prevState.artworks.filter((old) =>
@@ -74,17 +53,24 @@ export class ArtExplorer extends Component<Props, State> {
         };
       });
 
-      // Let any one result fail silently.
-      const artworks = (
-        await Promise.allSettled(resultListPromises.map((r) => r.artwork))
-      )
-        .filter(isFulfilled)
-        .map((p) => parseArtwork(p.value))
-        .filter((a) => a.imgSrc);
+      // Update the state asynchronously as each Request settles.
+      // Each Request represents an artwork and is independent of the others.
+      // Non-awaiting code. Always moves on.
+      for (const { artwork } of resultListPromises) {
+        artwork
+          .then((response) => this.updateResults(response))
+          // Let any one Request fail silently.
+          .catch((err) => console.error(err));
+      }
 
-      // // End Loading only after all results are loaded
-      // await Promise.allSettled(resultListPromises);
-      // if (resultListPromises.length === 0) {
+      // Also await the entire Request set to end
+      // Loading only after all Requests have settled.
+      // Awaiting code. Stops here until all requests have settled.
+      const artworks = await Promise.allSettled(
+        resultListPromises.map((r) => r.artwork)
+      );
+
+      // No Results Error View
       if (artworks.length === 0) {
         this.setState({
           loading: false,
@@ -93,31 +79,49 @@ export class ArtExplorer extends Component<Props, State> {
         return;
       }
 
-      // Update state
-
-      // this.setState({ userNotice: "" });
-      this.setState((prevState) => {
-        const newArtworks = new Set(prevState.artworks);
-        // Add all new artworks, using Set to prevent duplication
-        for (const artwork of artworks) {
-          newArtworks.add(artwork);
-        }
-        const sortedArtworks = Array.from(newArtworks).sort(
-          (a, b) => (a.year = b.year)
-        );
-        return {
-          loading: false,
-          userNotice: "", // Clear loading notice
-          artworks: sortedArtworks,
-        };
+      // Success View
+      this.setState({
+        loading: false,
+        userNotice: "", // clear loading notice
       });
     } catch (err) {
+      // Unknown Error View
       console.error(err);
       // User Notice
       this.setState({
         loading: false,
         userNotice: "😰 We are having trouble at the moment. Sorry!",
       });
+    }
+  };
+
+  updateResults = async (response: MetCollectionObjectResponse) => {
+    try {
+      const artwork = parseArtwork(response);
+      if (!artwork.imgSrc) {
+        // Some results from the MET API do not have an image.
+        // Skip these silently.
+        throw new Error(
+          `Skipping Result because it has no image src: ${JSON.stringify(
+            artwork
+          )}`
+        );
+      }
+
+      // Append the artwork to the results set
+      this.setState((prevState) => {
+        const prevArtworks = new Set(prevState.artworks);
+        const newArtworks = prevArtworks.add(artwork); // prevent duplication
+        const sortedArtworks = Array.from(newArtworks).sort(
+          (a, b) => (a.year = b.year)
+        );
+        return {
+          artworks: sortedArtworks,
+        };
+      });
+    } catch (err) {
+      console.log(err);
+      // Let any one result fail silently.
     }
   };
 
@@ -145,10 +149,4 @@ export class ArtExplorer extends Component<Props, State> {
       </Fragment>
     );
   }
-}
-
-function isFulfilled<T>(
-  p: PromiseSettledResult<T>
-): p is PromiseFulfilledResult<T> {
-  return p.status === "fulfilled";
 }
