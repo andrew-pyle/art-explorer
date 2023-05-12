@@ -16,6 +16,7 @@ type Props = {};
 
 interface State {
   userNotice: string;
+  loading: boolean;
   artworks: ArtworkT[];
 }
 
@@ -24,13 +25,14 @@ interface State {
 export class ArtExplorer extends Component<Props, State> {
   state: State = {
     userNotice: "",
+    loading: false,
     artworks: [],
   };
 
   searchMetMuseumApi: ArtworkSearchHandler = async (query, options) => {
     try {
       // Set Loading
-      this.setState({ userNotice: "Loading..." });
+      this.setState({ userNotice: "Loading...", loading: true });
 
       // Do Search
       const resultListPromises = await metMuseumCollection.explore(
@@ -85,6 +87,7 @@ export class ArtExplorer extends Component<Props, State> {
       // if (resultListPromises.length === 0) {
       if (artworks.length === 0) {
         this.setState({
+          loading: false,
           userNotice: "😭 No results in the Met Museum Open Access Collection.",
         });
         return;
@@ -103,6 +106,7 @@ export class ArtExplorer extends Component<Props, State> {
           (a, b) => (a.year = b.year)
         );
         return {
+          loading: false,
           userNotice: "", // Clear loading notice
           artworks: sortedArtworks,
         };
@@ -111,6 +115,7 @@ export class ArtExplorer extends Component<Props, State> {
       console.error(err);
       // User Notice
       this.setState({
+        loading: false,
         userNotice: "😰 We are having trouble at the moment. Sorry!",
       });
     }
@@ -134,6 +139,7 @@ export class ArtExplorer extends Component<Props, State> {
           {this.state.userNotice ? (
             <p class={style["user-notice"]}>{this.state.userNotice}</p>
           ) : null}
+          {this.state.loading ? <loading-indicator /> : null}
         </div>
         <ArtResultsGrid results={this.state.artworks} />
       </Fragment>
