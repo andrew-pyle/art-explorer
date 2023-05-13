@@ -210,6 +210,7 @@ export class ArtSearch extends Component<Props> {
 						suggestions.map((suggestion) => (
 							<button
 								key={suggestion}
+								type="button"
 								onClick={() => this.autofillSuggestion(suggestion)}
 							>
 								{suggestion}
