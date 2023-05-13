@@ -8,34 +8,14 @@ import metTags from "./MetTags.json";
 
 // Types
 
-interface SearchOptions {
+interface SearchOptions extends CancellableOptions {
 	minYear: number; // inclusive of this year
 	maxYear: number; // inclusive of this year
 }
 
-// Front-end filters
-//
-// artworksPerYear?: number;
-// artworksPerArtist?: number;
-//
-// const limitedArtworksPerArtist = this.#limitArtworksPerArtist(
-// 	artworksPerYear,
-// 	results.objectIDs,
-// );
-// const limitedArtworksPerYear = this.#limitArtworksPerArtist(
-// 	artworksPerYear,
-// 	results.objectIDs,
-// );
-//
-// #limitArtworksPerArtist = (limit: number, idList: number[]) => {
-// 	const idSet = idList.reduce(
-// 		(acc: Set<number>, id: number) => (acc.size < limit ? acc.add(id) : acc),
-// 		new Set(),
-// 	);
-// 	return Array.from(idSet.values());
-// };
-// #limitArtworksPerYear = (limit: number) => (acc: Set<number>, id: number) =>
-// 	acc.size < limit ? acc.add(id) : acc;
+interface CancellableOptions {
+	signal?: AbortController["signal"];
+}
 
 // Component
 
@@ -59,15 +39,51 @@ export class MetMuseumCollection {
 	 * as it settles, if needed.
 	 *
 	 * TODO use allSettled with Placeholder images
+	 *
+	 * @throws {AbortError} Accepts AbortController signal to abort the operation.
+	 * @throws {HttpError} Indicates that the API did not return a usable result.
 	 */
 	explore = async (query: string, options: SearchOptions) => {
-		const objectIDs = await this.#search(query, options);
-		const objectsResponsePromises =
-			objectIDs?.map((id) => ({ id, artwork: this.#getObject(id) })) ?? [];
-		return objectsResponsePromises;
+		try {
+			const objectIDs = await this.#search(query, options);
+			const objectsResponsePromises =
+				objectIDs?.map((id) => ({
+					id,
+					artwork: this.#getArtwork(id, { signal: options.signal }),
+				})) ?? [];
+			return objectsResponsePromises;
+		} catch (err) {
+			if (
+				(err instanceof DOMException && err.name === "AbortError") ||
+				err instanceof AbortError
+			) {
+				const { signal, ...userOptions } = options;
+				throw new AbortError(
+					`Query: '${query}' with options: ${JSON.stringify({ userOptions })}`,
+				);
+			}
+
+			if (err instanceof HttpError) {
+				// Rethrow HttpError for consumer
+				throw err;
+			}
+
+			// Unknown Error
+			throw err;
+		}
 	};
 
-	#search = async (q: string, { minYear, maxYear }: SearchOptions) => {
+	/**
+	 * Search the MET Museum Collection via the public API.
+	 * @throws {DOMException} Accepts AbortController signal to cancel HTTP
+	 * requests. Throws on cancellation.
+	 */
+	#search = async (q: string, { minYear, maxYear, signal }: SearchOptions) => {
+		// Short-circuit if signal already aborted.
+		if (signal?.aborted) {
+			throw new AbortError("Already Aborted before Search could start");
+		}
+
 		const searchParams = new URLSearchParams();
 
 		// Use Met Museum Collection Tag search, if the user provided a query
@@ -85,11 +101,6 @@ export class MetMuseumCollection {
 		searchParams.set("dateEnd", maxYear.toString(10));
 		searchParams.set("q", q);
 
-		const networkResults = await this.#searchEndpoint(searchParams);
-		return networkResults.objectIDs;
-	};
-
-	#searchEndpoint = async (searchParams: URLSearchParams) => {
 		const searchUrl = new URL(
 			URLPathname.join(this.basePathname, "/search"),
 			this.origin,
@@ -97,7 +108,7 @@ export class MetMuseumCollection {
 		searchUrl.search = searchParams.toString();
 
 		// console.log(searchUrl.toString()); // Debug: Show search query URLs as they happen
-		const response = await fetch(searchUrl);
+		const response = await fetch(searchUrl, { signal });
 
 		if (!response.ok) {
 			throw new HttpError(
@@ -110,28 +121,64 @@ export class MetMuseumCollection {
 		const networkResults =
 			(await response.json()) as MetCollectionSearchResponse;
 
-		return networkResults;
+		// We only need ID list
+		return networkResults.objectIDs;
 	};
 
-	#getObject = async (
+	/**
+	 * Retrieve an Artwork via its Met Museum Collection ID. Potentially
+	 * returns result from an in-memory cache, falling back to network
+	 * request from the MET Museum Collection public API.
+	 *
+	 * @throws {DOMException} Accepts AbortController signal to cancel HTTP
+	 * requests. Throws on cancellation.
+	 */
+	#getArtwork = async (
 		id: MetCollectionObjectID,
+		{ signal }: CancellableOptions = {},
 	): Promise<MetCollectionObjectResponse> => {
-		const cached = this.metCollectionObjectCache.get(id);
+		// Short-circuit if signal already aborted.
+		if (signal?.aborted) {
+			throw new AbortError(
+				"Already Aborted Before Artwork Retrieval could start",
+			);
+		}
+
+		const cached = this._getObjectFromCache(id);
 		if (cached) {
 			return cached;
 		}
-		const networkResponse = await this.#getObjectEndpoint(id);
-		this.metCollectionObjectCache.set(id, networkResponse);
+		const networkResponse = await this.#getObjectFromNetwork(id, { signal });
+		this._setObjectInCache(id, networkResponse);
 		return networkResponse;
 	};
 
-	#getObjectEndpoint = async (id: MetCollectionObjectID) => {
+	private _getObjectFromCache = (id: MetCollectionObjectID) => {
+		return this.metCollectionObjectCache.get(id);
+	};
+
+	private _setObjectInCache(
+		id: number,
+		networkResponse: MetCollectionObjectResponse,
+	) {
+		this.metCollectionObjectCache.set(id, networkResponse);
+	}
+
+	/**
+	 * Fetch an item from the Met Museum Collection via the public API.
+	 * @throws {DOMException} Accepts AbortController signal to cancel HTTP
+	 * requests. Throws on cancellation.
+	 */
+	#getObjectFromNetwork = async (
+		id: MetCollectionObjectID,
+		{ signal }: CancellableOptions = {},
+	) => {
 		const getUrl = new URL(
 			URLPathname.join(this.basePathname, "/objects", id),
 			this.origin,
 		);
 
-		const response = await fetch(getUrl);
+		const response = await fetch(getUrl, { signal });
 
 		if (!response.ok) {
 			throw new HttpError(
@@ -156,5 +203,12 @@ class HttpError extends Error {
 		this.message = `HTTP Status ${status} from request to '${url}'.${
 			intention ?? ""
 		}`;
+	}
+}
+
+export class AbortError extends Error {
+	constructor(operation: string) {
+		super();
+		this.message = `Cancelled Operation: ${operation}`;
 	}
 }

@@ -1,5 +1,5 @@
 import { Component, Fragment } from "preact";
-import { MetMuseumCollection } from "../lib/MetMuseumCollection";
+import { MetMuseumCollection, AbortError } from "../lib/MetMuseumCollection";
 import { ArtSearch } from "../ArtSearch/ArtSearch";
 import { ArtResultsGrid } from "../ArtResultsGrid/ArtResultsGrid";
 import { ArtworkSearchHandler, ArtworkT } from "../lib/types";
@@ -30,18 +30,34 @@ export class ArtExplorer extends Component<Props, State> {
 		artworks: [],
 	};
 
+	/** Stored as a bare class property, and not in state, for two reasons.
+	 * 1. `setState()` is asynchronous, so we can accidentally pass a reference to an
+	 *    old `AbortController` between renders.
+	 * 2. If the state contains an old `AbortController`, the `abort()` function
+	 *    will not cancel the currently working query.
+	 *
+	 * Limitation: Only one AbortController reference can be held at any given time.
+	 */
+	inflightController?: AbortController;
+
 	searchMetMuseumApi: ArtworkSearchHandler = async (query, options) => {
 		try {
 			// Set Loading
 			this.setState({ userNotice: "Loading...", loading: true });
 
-			// Do Search
-			const resultListPromises = await metMuseumCollection.explore(
-				query,
-				options,
-			);
+			// Pull the old kill-switch
+			this.inflightController?.abort();
 
-			// TODO. Use Set()
+			// Create a kill-switch for the new query
+			this.inflightController = new AbortController();
+
+			// Do Search
+			const resultListPromises = await metMuseumCollection.explore(query, {
+				...options,
+				signal: this.inflightController.signal,
+			});
+
+			// TODO. Just Use Set() in the state
 			// Remove artworks which aren't in the new results set
 			this.setState((prevState) => {
 				const newArtworks = new Set(resultListPromises.map((p) => p.id));
@@ -76,6 +92,8 @@ export class ArtExplorer extends Component<Props, State> {
 					loading: false,
 					userNotice: "😭 No results in the Met Museum Open Access Collection.",
 				});
+				// Clear AbortController after empty query settles
+				this.inflightController = undefined;
 				return;
 			}
 
@@ -84,9 +102,19 @@ export class ArtExplorer extends Component<Props, State> {
 				loading: false,
 				userNotice: "", // clear loading notice
 			});
+			// Also Clear AbortController after successful query settles
+			this.inflightController = undefined;
 		} catch (err) {
 			// Unknown Error View
 			console.error(err);
+
+			if (err instanceof AbortError) {
+				this.setState({
+					userNotice: "Cancelling previous query.",
+				});
+				return;
+			}
+
 			// User Notice
 			this.setState({
 				loading: false,
@@ -121,6 +149,13 @@ export class ArtExplorer extends Component<Props, State> {
 			});
 		} catch (err) {
 			console.log(err);
+
+			if (err instanceof AbortError) {
+				// Do not add the aborted promise to the view
+				// NoOp.
+				const x = 1; // Debug
+			}
+
 			// Let any one result fail silently.
 		}
 	};
@@ -136,6 +171,24 @@ export class ArtExplorer extends Component<Props, State> {
 				<h2>Search</h2>
 				<div class={style["sticky-top-bar"]}>
 					<ArtSearch onSubmit={this.searchMetMuseumApi} />
+					{/* Debug */}
+					{/* <button
+						type="button"
+						onClick={() => {
+							this.searchMetMuseumApi("woman", {
+								minYear: 1600,
+								maxYear: 2100,
+							});
+							setTimeout(() => {
+								this.searchMetMuseumApi("woman", {
+									minYear: 1500,
+									maxYear: 1599,
+								});
+							}, 1_500);
+						}}
+					>
+						Debug AbortControllers
+					</button> */}
 					<hr />
 				</div>
 				<div class={style["title-bar"]}>
@@ -144,6 +197,14 @@ export class ArtExplorer extends Component<Props, State> {
 						<p class={style["user-notice"]}>{this.state.userNotice}</p>
 					) : null}
 					{this.state.loading ? <loading-indicator /> : null}
+					{this.inflightController ? (
+						<button
+							type="button"
+							onClick={() => this.inflightController?.abort()}
+						>
+							Cancel
+						</button>
+					) : null}
 				</div>
 				<ArtResultsGrid results={this.state.artworks} />
 			</Fragment>
