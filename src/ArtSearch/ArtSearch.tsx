@@ -23,12 +23,14 @@ interface State {
  *
  */
 export class ArtSearch extends Component<Props> {
-	state: State = {
+	state: Readonly<State> = {
 		query: "woman",
 		year: 1500,
 		yearRange: 100,
 		suggestions: [],
 	};
+	minYear = -2000; // 2000 BCE
+	maxYear = 2000; // 2000 CE
 
 	componentDidMount(): void {
 		const [minYear, maxYear] = this.calculateYearRange(
@@ -77,9 +79,11 @@ export class ArtSearch extends Component<Props> {
 
 	calculateYearRange = (year: number, yearRange: number) => {
 		const naiveMin = year - yearRange;
-		const zeroFloorMin = naiveMin < 0 ? 0 : naiveMin;
+		const floorMin = naiveMin < this.minYear ? this.minYear : naiveMin;
 		const naiveMax = year + yearRange;
-		return [zeroFloorMin, naiveMax];
+		const floorMax = naiveMax > this.maxYear ? this.maxYear : naiveMax;
+		// return [zeroFloorMin, naiveMax];
+		return [floorMin, floorMax];
 	};
 
 	autofillSuggestion = (suggestion: string) => {
@@ -115,79 +119,31 @@ export class ArtSearch extends Component<Props> {
 						type="range"
 						name="year"
 						id="year"
-						min="0"
-						max="2100"
+						min={this.minYear}
+						max={this.maxYear}
 						step="50"
-						list="year-tick-marks"
+						// list="year-tick-marks"
 						value={this.state.year}
 						onInput={this.handleYearSliderInput}
 					/>
-					{/* See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/range#adding_labels */}
-					<datalist id="year-tick-marks">
-						<option value="0">0</option>
-						<option value="50">50</option>
-						<option value="100">100</option>
-						<option value="150">150</option>
-						<option value="200">200</option>
-						<option value="250">250</option>
-						<option value="300">300</option>
-						<option value="350">350</option>
-						<option value="400">400</option>
-						<option value="450">450</option>
-						<option value="500">500</option>
-						<option value="550">550</option>
-						<option value="600">600</option>
-						<option value="650">650</option>
-						<option value="700">700</option>
-						<option value="750">750</option>
-						<option value="800">800</option>
-						<option value="850">850</option>
-						<option value="900">900</option>
-						<option value="950">950</option>
-						<option value="1000">1000</option>
-						<option value="1050">1050</option>
-						<option value="1100">1100</option>
-						<option value="1150">1150</option>
-						<option value="1200">1200</option>
-						<option value="1250">1250</option>
-						<option value="1300">1300</option>
-						<option value="1350">1350</option>
-						<option value="1400">1400</option>
-						<option value="1450">1450</option>
-						<option value="1500">1500</option>
-						<option value="1550">1550</option>
-						<option value="1600">1600</option>
-						<option value="1650">1650</option>
-						<option value="1700">1700</option>
-						<option value="1750">1750</option>
-						<option value="1800">1800</option>
-						<option value="1850">1850</option>
-						<option value="1900">1900</option>
-						<option value="1950">1950</option>
-						<option value="2000">2000</option>
-						<option value="2050">2050</option>
-						<option value="2100">2100</option>
-					</datalist>
 					<output
 						class={style["year-output"]}
-						type="number"
+						type="text"
 						name="year-output-min"
 						aria-label="earliest year of artwork"
-						min="0"
-						max="2100"
-						step="50"
-						value={minYear}
+						value={`${Math.abs(minYear)} ${
+							minYear < 0 ? "BCE" : "CE"
+						}`.padStart(4, "&nbsp;")}
 					/>{" "}
 					<span>To</span>{" "}
 					<output
 						class={style["year-output"]}
-						type="number"
+						type="text"
 						name="year-output-max"
 						aria-label="latest year of artwork"
-						min="0"
-						max="2100"
-						step="50"
-						value={maxYear}
+						value={`${Math.abs(maxYear)} ${
+							maxYear < 0 ? "BCE" : "CE"
+						}`.padStart(4, "&nbsp;")}
 					/>
 				</div>
 				<div class={[style["input-and-button"], style["form-row"]].join(" ")}>

@@ -30,7 +30,8 @@ input[type="range"] {
 }
 
 .year-output {
-  min-width: 6ch;
+  text-align: center;
+  width: 9ch;
 }
 
 .suggestions {
