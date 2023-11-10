@@ -13,7 +13,10 @@ const metMuseumCollection = new MetMuseumCollection();
 
 // Types
 
-type Props = {};
+type Props = {
+	// No Props
+	[x: string]: never;
+};
 
 interface State {
 	userNotice: string;
@@ -153,7 +156,7 @@ export class ArtExplorer extends Component<Props, State> {
 			if (err instanceof AbortError) {
 				// Do not add the aborted promise to the view
 				// NoOp.
-				const x = 1; // Debug
+				// const x = 1; // Debug
 			}
 
 			// Let any one result fail silently.

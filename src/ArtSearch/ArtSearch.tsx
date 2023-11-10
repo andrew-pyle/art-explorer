@@ -1,10 +1,10 @@
-import { Component, JSX } from "preact";
 import debounce from "just-debounce-it";
-import shuffle from "just-shuffle";
-import style from "./style.module.css";
-import { ArtworkSearchHandler } from "../lib/types";
-import metTags from "../lib/MetTags.json";
 import memoize from "just-memoize";
+import shuffle from "just-shuffle";
+import { Component, JSX } from "preact";
+import metTags from "../lib/MetTags.json";
+import { ArtworkSearchHandler } from "../lib/types";
+import style from "./style.module.css";
 
 // Types
 
@@ -157,7 +157,7 @@ export class ArtSearch extends Component<Props> {
 					/>
 					<button type="submit">Search</button>
 				</div>
-				<div class={[style["form-row"], style["suggestions"]].join(" ")}>
+				<div class={[style["form-row"], style.suggestions].join(" ")}>
 					{this.state.query.length === 0 ? (
 						<span class="help-text">
 							Type in the search bar to see suggestions
