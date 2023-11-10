@@ -154,6 +154,7 @@ export class ArtSearch extends Component<Props> {
 						placeholder="Try woman, dog, or sunflower"
 						value={this.state.query}
 						onInput={this.handleQueryInput}
+						autofocus
 					/>
 					<button type="submit">Search</button>
 				</div>
