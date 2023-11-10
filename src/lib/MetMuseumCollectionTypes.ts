@@ -1,7 +1,10 @@
+// From https://metmuseum.github.io/
+
 // ---- API Responses ---------------------
 
 /**
  * GET /search
+ * @see https://metmuseum.github.io/#search
  */
 export interface MetCollectionSearchResponse {
 	total: number;
@@ -10,6 +13,7 @@ export interface MetCollectionSearchResponse {
 
 /**
  * GET /objects/{id}
+ * @see https://metmuseum.github.io/#object
  */
 export interface MetCollectionObjectResponse {
 	objectID: number; //	Identifying number for each artwork (unique, can be used as key field)	437133
@@ -76,6 +80,9 @@ export interface MetCollectionObjectResponse {
 
 export type MetCollectionObjectID = number;
 
+/**
+ * @see https://metmuseum.github.io/#object
+ */
 export interface MetCollectionConstituent {
 	constituentID: number;
 	role: string; // "Artist";
@@ -85,6 +92,9 @@ export interface MetCollectionConstituent {
 	gender: "" | "Female"; // currently contains female designations only
 }
 
+/**
+ * @see https://metmuseum.github.io/#object
+ */
 export interface MetCollectionMeasurement {
 	elementName: string; // "Frame"
 	elementDescription: null | string; // "Temple Proper"
@@ -95,6 +105,9 @@ export interface MetCollectionMeasurement {
 	};
 }
 
+/**
+ * @see https://metmuseum.github.io/#object
+ */
 export interface MetCollectionTag {
 	term: string; // "Madonna and Child";
 	AAT_URL: string; // "http://vocab.getty.edu/page/ia/901000052";
