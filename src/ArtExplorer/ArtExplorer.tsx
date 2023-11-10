@@ -1,10 +1,10 @@
 import { Component, Fragment } from "preact";
-import { MetMuseumCollection, AbortError } from "../lib/MetMuseumCollection";
-import { ArtSearch } from "../ArtSearch/ArtSearch";
 import { ArtResultsGrid } from "../ArtResultsGrid/ArtResultsGrid";
+import { ArtSearch } from "../ArtSearch/ArtSearch";
+import { AbortError, MetMuseumCollection } from "../lib/MetMuseumCollection";
+import type { MetCollectionObjectResponse } from "../lib/MetMuseumCollectionTypes";
 import { ArtworkSearchHandler, ArtworkT } from "../lib/types";
 import { parseArtwork } from "../lib/utils";
-import type { MetCollectionObjectResponse } from "../lib/MetMuseumCollectionTypes";
 import style from "./style.module.css";
 
 // Constants

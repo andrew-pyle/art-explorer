@@ -3,8 +3,8 @@ import type {
 	MetCollectionObjectResponse,
 	MetCollectionSearchResponse,
 } from "./MetMuseumCollectionTypes";
-import { URLPathname } from "./URLPathname";
 import metTags from "./MetTags.json";
+import { URLPathname } from "./URLPathname.js";
 
 // Types
 
@@ -102,7 +102,7 @@ export class MetMuseumCollection {
 		searchParams.set("q", q);
 
 		const searchUrl = new URL(
-			URLPathname.join(this.basePathname, "/search"),
+			new URLPathname(this.basePathname, "/search").toString(),
 			this.origin,
 		);
 		searchUrl.search = searchParams.toString();
@@ -174,7 +174,7 @@ export class MetMuseumCollection {
 		{ signal }: CancellableOptions = {},
 	) => {
 		const getUrl = new URL(
-			URLPathname.join(this.basePathname, "/objects", id),
+			new URLPathname(this.basePathname, "/objects", id).toString(),
 			this.origin,
 		);
 
