@@ -45,6 +45,11 @@ export class ArtExplorer extends Component<Props, State> {
 
 	searchMetMuseumApi: ArtworkSearchHandler = async (query, options) => {
 		try {
+			// Empty search is NoOp
+			if (query.length === 0) {
+				return;
+			}
+			
 			// Set Loading
 			this.setState({ userNotice: "Loading...", loading: true });
 
