@@ -196,21 +196,21 @@ export class ArtExplorer extends Component<Props, State> {
 					</button> */}
 						<hr />
 					</div>
-				</div>
-				<div class={style["title-bar"]}>
-					<h2>Results</h2>
-					{this.state.userNotice ? (
-						<p class={style["user-notice"]}>{this.state.userNotice}</p>
-					) : null}
-					{this.state.loading ? <loading-indicator /> : null}
-					{this.inflightController ? (
-						<button
-							type="button"
-							onClick={() => this.inflightController?.abort()}
-						>
-							Cancel
-						</button>
-					) : null}
+					<div class={style["title-bar"]}>
+						<h2>Results</h2>
+						{this.state.userNotice ? (
+							<p class={style["user-notice"]}>{this.state.userNotice}</p>
+						) : null}
+						{this.state.loading ? <loading-indicator /> : null}
+						{this.inflightController ? (
+							<button
+								type="button"
+								onClick={() => this.inflightController?.abort()}
+							>
+								Cancel
+							</button>
+						) : null}
+					</div>
 				</div>
 				<ArtResultsGrid results={this.state.artworks} />
 			</Fragment>
