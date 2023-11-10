@@ -173,11 +173,11 @@ export class ArtExplorer extends Component<Props, State> {
 						Art's Open Access Collection
 					</p>
 					<h2>Search</h2>
-				
-				<div class={style["sticky-top-bar"]}>
-					<ArtSearch onSubmit={this.searchMetMuseumApi} />
-					{/* Debug */}
-					{/* <button
+
+					<div class={style["sticky-top-bar"]}>
+						<ArtSearch onSubmit={this.searchMetMuseumApi} />
+						{/* Debug */}
+						{/* <button
 						type="button"
 						onClick={() => {
 							this.searchMetMuseumApi("woman", {
@@ -194,8 +194,8 @@ export class ArtExplorer extends Component<Props, State> {
 					>
 						Debug AbortControllers
 					</button> */}
-					<hr />
-				</div>
+						<hr />
+					</div>
 				</div>
 				<div class={style["title-bar"]}>
 					<h2>Results</h2>
