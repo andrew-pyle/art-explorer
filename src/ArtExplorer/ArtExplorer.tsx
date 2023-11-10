@@ -166,12 +166,14 @@ export class ArtExplorer extends Component<Props, State> {
 	render() {
 		return (
 			<Fragment>
-				<h1>Art Timeline</h1>
-				<p>
-					Explore Representations in Art through Time With the Met Museum of
-					Art's Open Access Collection
-				</p>
-				<h2>Search</h2>
+				<div class={style.wrapper}>
+					<h1>Art Timeline</h1>
+					<p>
+						Explore Representations in Art through Time With the Met Museum of
+						Art's Open Access Collection
+					</p>
+					<h2>Search</h2>
+				
 				<div class={style["sticky-top-bar"]}>
 					<ArtSearch onSubmit={this.searchMetMuseumApi} />
 					{/* Debug */}
@@ -193,6 +195,7 @@ export class ArtExplorer extends Component<Props, State> {
 						Debug AbortControllers
 					</button> */}
 					<hr />
+				</div>
 				</div>
 				<div class={style["title-bar"]}>
 					<h2>Results</h2>
