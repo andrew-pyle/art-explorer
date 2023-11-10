@@ -24,7 +24,7 @@ interface State {
  */
 export class ArtSearch extends Component<Props> {
 	state: Readonly<State> = {
-		query: "woman",
+		query: "",
 		year: 1500,
 		yearRange: 100,
 		suggestions: [],
@@ -87,7 +87,13 @@ export class ArtSearch extends Component<Props> {
 	};
 
 	autofillSuggestion = (suggestion: string) => {
-		this.setState({ query: suggestion });
+		this.setState({ query: suggestion }, () => {
+			const [minYear, maxYear] = this.calculateYearRange(
+				this.state.year,
+				this.state.yearRange,
+			);
+			this.props.onSubmit(this.state.query, { minYear, maxYear })
+		});
 	};
 
 	/**
